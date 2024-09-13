@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const Presupuesto = require('./models/Presupuesto');
 const Comida = require('./models/Comida');
 const TipoDeComida = require('./models/TipoDeComida');
@@ -9,6 +10,7 @@ const port = parseInt(process.env.PORT) || process.argv[3] || 8080;
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Hello World');
@@ -92,7 +94,6 @@ app.post('/presupuesto', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener el presupuesto' });
   }
 });
-
 
 app.post('/tipo-comida', async (req, res) => {
   const { id_comida } = req.body;
