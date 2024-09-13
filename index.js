@@ -34,32 +34,65 @@ Restaurante.belongsToMany(TipoDeComida, {
   foreignKey: 'id_restaurante'
 });
 
-app.post('/comida', (req, res) => {
-  const { tipoComida } = req.body;
-  if (tipoComida) {
-    res.status(200).json({ tipoComida });
-  } else {
-    const comidas = ['Desayuno', 'Almuerzo', 'Cena'];
-    const tipoComidaAleatorio = comidas[Math.floor(Math.random() * comidas.length)];
-    res.status(200).json({ tipoComida: tipoComidaAleatorio });
+app.post('/comida', async (req, res) => {
+  const { nombre_comida } = req.body;
+
+  if (!nombre_comida) {
+    return res.status(400).json({ error: 'El nombre de la comida es requerido' });
+  }
+
+  try {
+    const comida = await Comida.findOne({
+      where: { nombre_comida }
+    });
+
+    if (!comida) {
+      return res.status(404).json({ error: 'No se encontró una comida con ese nombre' });
+    }
+
+    res.status(200).json({
+      id_comida: comida.id_comida,
+      nombre_comida: comida.nombre_comida
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al consultar la comida' });
   }
 });
 
 app.post('/presupuesto', async (req, res) => {
   const { nivelPresupuesto } = req.body;
 
-  if (nivelPresupuesto) {
-    res.status(200).json({ nivelPresupuesto });
-  } else {
-    try {
+  try {
+    if (nivelPresupuesto) {
+      const presupuesto = await Presupuesto.findOne({
+        where: { nivel_presupuesto: nivelPresupuesto }
+      });
+
+      if (!presupuesto) {
+        return res.status(404).json({ error: 'No se encontró un presupuesto con ese nivel' });
+      }
+
+      return res.status(200).json({
+        id_presupuesto: presupuesto.id_presupuesto,
+        nivel_presupuesto: presupuesto.nivel_presupuesto
+      });
+    } else {
       const presupuestos = await Presupuesto.findAll();
       const presupuestoAleatorio = presupuestos[Math.floor(Math.random() * presupuestos.length)];
-      res.status(200).json({ nivelPresupuesto: presupuestoAleatorio.nivel_presupuesto, idPresupuesto: presupuestoAleatorio.id_presupuesto });
-    } catch (error) {
-      res.status(500).json({ error: 'Error al obtener el presupuesto' });
+
+      return res.status(200).json({
+        id_presupuesto: presupuestoAleatorio.id_presupuesto,
+        nivel_presupuesto: presupuestoAleatorio.nivel_presupuesto
+      });
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener el presupuesto' });
   }
 });
+
 
 app.post('/tipo-comida', async (req, res) => {
   const { id_comida } = req.body;
